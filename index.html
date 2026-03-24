@@ -1,0 +1,79 @@
+<!DOCTYPE html><html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema RCV Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+    .card { background: white; padding: 15px; margin: 10px 0; border-radius: 10px; }
+    input, button { padding: 10px; margin: 5px; }
+  </style>
+</head>
+<body><h2>Registro de Vehículo (DEMO)</h2><input type="text" id="nombre" placeholder="Nombre">
+<input type="text" id="placa" placeholder="Placa">
+<input type="text" id="modelo" placeholder="Modelo">
+<button onclick="registrar()">Registrar</button><h3>Registros</h3>
+<div id="lista"></div><script>
+let data = JSON.parse(localStorage.getItem('rcvData')) || [];
+
+function guardar() {
+  localStorage.setItem('rcvData', JSON.stringify(data));
+}
+
+function registrar() {
+  const nombre = document.getElementById('nombre').value;
+  const placa = document.getElementById('placa').value;
+  const modelo = document.getElementById('modelo').value;
+
+  if (!nombre || !placa) return alert('Completa los datos');
+
+  const id = Date.now();
+  const registro = { id, nombre, placa, modelo };
+
+  data.push(registro);
+  guardar();
+  mostrar();
+}
+
+function mostrar() {
+  const lista = document.getElementById('lista');
+  lista.innerHTML = '';
+
+  data.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'card';
+
+    const url = window.location.href + '?id=' + r.id;
+
+    div.innerHTML = `
+      <b>${r.nombre}</b><br>
+      Placa: ${r.placa}<br>
+      Modelo: ${r.modelo}<br>
+      <canvas id="qr-${r.id}"></canvas>
+    `;
+
+    lista.appendChild(div);
+
+    QRCode.toCanvas(document.getElementById(`qr-${r.id}`), url);
+  });
+}
+
+function verificar() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  if (id) {
+    const registro = data.find(r => r.id == id);
+    document.body.innerHTML = registro ? `
+      <h2>Verificación (DEMO)</h2>
+      Nombre: ${registro.nombre}<br>
+      Placa: ${registro.placa}<br>
+      Modelo: ${registro.modelo}
+    ` : '<h2>No encontrado</h2>';
+  }
+}
+
+verificar();
+mostrar();
+</script></body>
+  </html>
